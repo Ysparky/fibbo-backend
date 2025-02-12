@@ -7,4 +7,6 @@ export interface ISessionRepository {
   delete(id: string): Promise<void>;
   addParticipant(sessionId: string, userId: string): Promise<Session>;
   removeParticipant(sessionId: string, userId: string): Promise<Session>;
+  removeParticipantFromAllSessions(userId: string): Promise<void>;
+  findByParticipantId(userId: string): Promise<Session | null>;
 }

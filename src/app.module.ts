@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { CreateSessionUseCase } from './application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from './application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from './application/use-cases/session/get-session.use-case';
+import { HandleDisconnectUseCase } from './application/use-cases/session/handle-disconnect.use-case';
+import { HandleReconnectUseCase } from './application/use-cases/session/handle-reconnect.use-case';
 import { JoinSessionUseCase } from './application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from './application/use-cases/session/update-session.use-case';
 import { CreateTaskUseCase } from './application/use-cases/task/create-task.use-case';
@@ -52,6 +54,8 @@ import { VoteController } from './interface/rest/vote.controller';
     UpdateSessionUseCase,
     DeleteSessionUseCase,
     JoinSessionUseCase,
+    HandleDisconnectUseCase,
+    HandleReconnectUseCase,
     // Task Use Cases
     CreateTaskUseCase,
     GetTaskUseCase,

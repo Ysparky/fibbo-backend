@@ -11,6 +11,8 @@ import { GetTaskVotesUseCase } from 'src/application/use-cases/vote/get-task-vot
 import { JoinSessionDto } from '../../application/dto/join-session.dto';
 import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
+import { HandleDisconnectUseCase } from '../../application/use-cases/session/handle-disconnect.use-case';
+import { HandleReconnectUseCase } from '../../application/use-cases/session/handle-reconnect.use-case';
 import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
 import { GetUserVotesUseCase } from '../../application/use-cases/vote/get-user-votes.use-case';
@@ -43,11 +45,26 @@ export class SessionGateway
     private readonly getTaskVotesUseCase: GetTaskVotesUseCase,
     private readonly updateVoteUseCase: UpdateVoteUseCase,
     private readonly getUserVotesUseCase: GetUserVotesUseCase,
+    private readonly handleDisconnectUseCase: HandleDisconnectUseCase,
+    private readonly handleReconnectUseCase: HandleReconnectUseCase,
   ) {}
 
   async handleConnection(client: Socket) {
     try {
       console.log(`Client connected: ${client.id}`);
+
+      if (client.data?.user?.id) {
+        const sessionId = await this.handleReconnectUseCase.execute(
+          client.data.user.id,
+        );
+
+        if (sessionId) {
+          client.join(sessionId);
+          this.server.to(sessionId).emit(WebSocketEvents.USER_JOINED, {
+            userId: client.data.user.id,
+          });
+        }
+      }
     } catch (error) {
       console.error('Connection error:', error);
       client.disconnect();
@@ -55,8 +72,30 @@ export class SessionGateway
   }
 
   async handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
-    // TODO: Implement user cleanup from session
+    try {
+      console.log(`Client disconnected: ${client.id}`);
+
+      if (client.data?.user?.id) {
+        const { sessionId, userId } =
+          await this.handleDisconnectUseCase.execute(
+            client.data.user.id,
+            false,
+          ); // false = keep in session
+
+        if (sessionId) {
+          this.server.to(sessionId).emit(WebSocketEvents.USER_LEFT, {
+            userId,
+          });
+
+          // Leave all rooms
+          client.rooms.forEach((room) => {
+            client.leave(room);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Disconnect error:', error);
+    }
   }
 
   @SubscribeMessage(WebSocketEvents.JOIN_SESSION)
@@ -86,13 +125,21 @@ export class SessionGateway
   @SubscribeMessage(WebSocketEvents.LEAVE_SESSION)
   async handleLeaveSession(client: Socket, sessionId: string) {
     try {
+      await this.handleDisconnectUseCase.execute(client.data.user.id, true); // true = remove from session
+
       client.leave(sessionId);
+
       this.server.to(sessionId).emit(WebSocketEvents.USER_LEFT, {
         userId: client.data.user.id,
       });
+
       return { status: 'ok' };
     } catch (error) {
-      return { status: 'error', message: error.message };
+      throw new WsCustomException(
+        'Failed to leave session',
+        'LEAVE_SESSION_ERROR',
+        { error: error.message },
+      );
     }
   }
 

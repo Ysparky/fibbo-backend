@@ -117,6 +117,37 @@ export class PrismaSessionRepository implements ISessionRepository {
     return this.mapToEntity(updatedSession);
   }
 
+  async removeParticipantFromAllSessions(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        sessionId: null,
+      },
+    });
+  }
+
+  async findByParticipantId(userId: string): Promise<Session | null> {
+    const session = await this.prisma.session.findFirst({
+      where: {
+        participants: {
+          some: {
+            id: userId,
+          },
+        },
+      },
+      include: {
+        participants: true,
+        tasks: {
+          include: {
+            votes: true,
+          },
+        },
+      },
+    });
+
+    return session ? this.mapToEntity(session) : null;
+  }
+
   private mapToEntity(prismaSession: any): Session {
     const session = new Session(
       prismaSession.id,
