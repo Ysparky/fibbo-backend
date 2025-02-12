@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserRole } from '../../../core/entities/session-user.entity';
 import { Session } from '../../../core/entities/session.entity';
 import { ISessionUserRepository } from '../../../core/interfaces/repositories/session-user.repository.interface';
@@ -8,7 +8,9 @@ import { CreateSessionDto } from '../../dto/session/create-session.dto';
 @Injectable()
 export class CreateSessionUseCase {
   constructor(
+    @Inject('ISessionRepository')
     private readonly sessionRepository: ISessionRepository,
+    @Inject('ISessionUserRepository')
     private readonly sessionUserRepository: ISessionUserRepository,
   ) {}
 

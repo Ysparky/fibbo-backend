@@ -21,6 +21,6 @@ export class UpdateSessionUseCase {
     session.currentTaskId = dto.currentTaskId ?? session.currentTaskId;
     session.isVotingActive = dto.isVotingActive ?? session.isVotingActive;
 
-    return this.sessionRepository.update(session);
+    return this.sessionRepository.update(id, session);
   }
 }

@@ -6,7 +6,6 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { UserRole } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
 import { JoinSessionDto } from 'src/application/dto/session/join-session.dto';
 import {
@@ -19,6 +18,7 @@ import { HandleDisconnectUseCase } from 'src/application/use-cases/session-user/
 import { JoinSessionUseCase } from 'src/application/use-cases/session-user/join-session.use-case';
 import { HandleReconnectUseCase } from 'src/application/use-cases/session/handle-reconnect.use-case';
 import { UpdateSessionUseCase } from 'src/application/use-cases/session/update-session.use-case';
+import { UserRole } from 'src/core/entities/session-user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsSessionRoleGuard } from '../auth/guards/ws-session-role.guard';

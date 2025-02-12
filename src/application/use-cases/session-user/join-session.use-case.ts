@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserNotFoundException } from 'src/core/exceptions/user.exception';
 import {
   SessionUser,
@@ -13,8 +13,11 @@ import { JoinSessionDto } from '../../dto/session/join-session.dto';
 @Injectable()
 export class JoinSessionUseCase {
   constructor(
+    @Inject('ISessionRepository')
     private readonly sessionRepository: ISessionRepository,
+    @Inject('ISessionUserRepository')
     private readonly sessionUserRepository: ISessionUserRepository,
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
 

@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { CreateSessionDto } from 'src/application/dto/session/create-session.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { Session } from '../../core/entities/session.entity';
-import { User } from '../../core/entities/user.entity';
-import {
-  CreateSessionDto,
-  ISessionRepository,
-} from '../../core/interfaces/repositories/session.repository.interface';
+import { ISessionRepository } from '../../core/interfaces/repositories/session.repository.interface';
 import { PrismaService } from './prisma.service';
 
 @Injectable()
@@ -43,7 +40,11 @@ export class PrismaSessionRepository implements ISessionRepository {
   async update(id: string, data: Partial<Session>): Promise<Session> {
     const session = await this.prisma.session.update({
       where: { id },
-      data,
+      data: {
+        name: data.name,
+        currentTaskId: data.currentTaskId,
+        isVotingActive: data.isVotingActive,
+      },
       include: {
         users: true,
         tasks: true,
@@ -59,68 +60,17 @@ export class PrismaSessionRepository implements ISessionRepository {
     });
   }
 
-  async addParticipant(sessionId: string, userId: string): Promise<Session> {
-    const updatedSession = await this.prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        participants: {
-          connect: { id: userId },
-        },
-      },
-      include: {
-        participants: true,
-        tasks: {
-          include: {
-            votes: true,
-          },
-        },
-      },
-    });
-
-    return this.mapToEntity(updatedSession);
-  }
-
-  async removeParticipant(sessionId: string, userId: string): Promise<Session> {
-    const updatedSession = await this.prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        participants: {
-          disconnect: { id: userId },
-        },
-      },
-      include: {
-        participants: true,
-        tasks: {
-          include: {
-            votes: true,
-          },
-        },
-      },
-    });
-
-    return this.mapToEntity(updatedSession);
-  }
-
-  async removeParticipantFromAllSessions(userId: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        sessionId: null,
-      },
-    });
-  }
-
   async findByParticipantId(userId: string): Promise<Session | null> {
     const session = await this.prisma.session.findFirst({
       where: {
-        participants: {
+        users: {
           some: {
             id: userId,
           },
         },
       },
       include: {
-        participants: true,
+        users: true,
         tasks: {
           include: {
             votes: true,
@@ -138,9 +88,6 @@ export class PrismaSessionRepository implements ISessionRepository {
       prismaSession.name,
       prismaSession.currentTaskId,
       prismaSession.isVotingActive,
-    );
-    session.participants = prismaSession.participants.map(
-      (p: any) => new User(p.id, p.name, p.role),
     );
     session.tasks = prismaSession.tasks;
     return session;

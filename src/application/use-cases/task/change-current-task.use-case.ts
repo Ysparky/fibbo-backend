@@ -34,7 +34,7 @@ export class ChangeCurrentTaskUseCase {
       }
     }
 
-    await this.sessionRepository.update({
+    await this.sessionRepository.update(sessionId, {
       ...session,
       currentTaskId: taskId,
     });

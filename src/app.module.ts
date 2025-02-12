@@ -67,6 +67,7 @@ import { VoteController } from './interface/rest/vote.controller';
     GetSessionUseCase,
     UpdateSessionUseCase,
     DeleteSessionUseCase,
+    // Session User Use Cases
     JoinSessionUseCase,
     HandleDisconnectUseCase,
     HandleReconnectUseCase,
