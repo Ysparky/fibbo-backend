@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { HandleDisconnectUseCase } from 'src/application/use-cases/session/handle-disconnect.use-case';
+import { HandleDisconnectUseCase } from 'src/application/use-cases/session-user/handle-disconnect.use-case';
 import { Session } from 'src/core/entities/session.entity';
 import { User, UserRole } from 'src/core/entities/user.entity';
 import { ISessionRepository } from 'src/core/interfaces/repositories/session.repository.interface';

@@ -15,9 +15,9 @@ import {
   WsVotingStateResponseDto,
 } from 'src/application/dto/session/session-response.dto';
 import { WebSocketEvents } from 'src/application/events/websocket.events';
-import { HandleDisconnectUseCase } from 'src/application/use-cases/session/handle-disconnect.use-case';
+import { HandleDisconnectUseCase } from 'src/application/use-cases/session-user/handle-disconnect.use-case';
+import { JoinSessionUseCase } from 'src/application/use-cases/session-user/join-session.use-case';
 import { HandleReconnectUseCase } from 'src/application/use-cases/session/handle-reconnect.use-case';
-import { JoinSessionUseCase } from 'src/application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from 'src/application/use-cases/session/update-session.use-case';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';

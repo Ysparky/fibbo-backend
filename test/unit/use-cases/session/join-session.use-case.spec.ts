@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { JoinSessionDto } from 'src/application/dto/session/join-session.dto';
-import { JoinSessionUseCase } from 'src/application/use-cases/session/join-session.use-case';
+import { JoinSessionUseCase } from 'src/application/use-cases/session-user/join-session.use-case';
 import { Session } from 'src/core/entities/session.entity';
 import { User, UserRole } from 'src/core/entities/user.entity';
 import { SessionNotFoundException } from 'src/core/exceptions/session.exception';

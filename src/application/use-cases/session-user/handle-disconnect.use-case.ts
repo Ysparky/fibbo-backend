@@ -1,11 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
+import { ISessionUserRepository } from 'src/core/interfaces/repositories/session-user.repository.interface';
+import { ISessionRepository } from 'src/core/interfaces/repositories/session.repository.interface';
 
 @Injectable()
 export class HandleDisconnectUseCase {
   constructor(
     @Inject('ISessionRepository')
     private readonly sessionRepository: ISessionRepository,
+    @Inject('ISessionUserRepository')
+    private readonly sessionUserRepository: ISessionUserRepository,
   ) {}
 
   async execute(
@@ -22,7 +25,7 @@ export class HandleDisconnectUseCase {
     }
 
     if (shouldRemove) {
-      await this.sessionRepository.removeParticipantFromAllSessions(userId);
+      await this.sessionUserRepository.remove(userId, session.id);
     }
 
     return {

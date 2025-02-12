@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { Server, Socket } from 'socket.io';
 import { JoinSessionDto } from 'src/application/dto/session/join-session.dto';
-import { HandleDisconnectUseCase } from 'src/application/use-cases/session/handle-disconnect.use-case';
+import { HandleDisconnectUseCase } from 'src/application/use-cases/session-user/handle-disconnect.use-case';
+import { JoinSessionUseCase } from 'src/application/use-cases/session-user/join-session.use-case';
 import { HandleReconnectUseCase } from 'src/application/use-cases/session/handle-reconnect.use-case';
-import { JoinSessionUseCase } from 'src/application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from 'src/application/use-cases/session/update-session.use-case';
 import { ChangeCurrentTaskUseCase } from 'src/application/use-cases/task/change-current-task.use-case';
 import { CreateTaskUseCase } from 'src/application/use-cases/task/create-task.use-case';
