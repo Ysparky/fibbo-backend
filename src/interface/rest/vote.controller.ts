@@ -7,7 +7,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
+import { SubmitVoteDto } from '../../application/dto/vote/submit-vote.dto';
 import { GetTaskVotesUseCase } from '../../application/use-cases/vote/get-task-votes.use-case';
 import { SubmitVoteUseCase } from '../../application/use-cases/vote/submit-vote.use-case';
 import { Vote } from '../../core/entities/vote.entity';

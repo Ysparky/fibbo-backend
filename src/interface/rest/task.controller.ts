@@ -8,8 +8,8 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { CreateTaskDto } from '../../application/dto/create-task.dto';
-import { UpdateTaskDto } from '../../application/dto/update-task.dto';
+import { CreateTaskDto } from '../../application/dto/task/create-task.dto';
+import { UpdateTaskDto } from '../../application/dto/task/update-task.dto';
 import { CreateTaskUseCase } from '../../application/use-cases/task/create-task.use-case';
 import { DeleteTaskUseCase } from '../../application/use-cases/task/delete-task.use-case';
 import { GetTaskUseCase } from '../../application/use-cases/task/get-task.use-case';

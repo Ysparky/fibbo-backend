@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { SessionNotFoundException } from 'src/core/exceptions/session.exception';
 import { Session } from '../../../core/entities/session.entity';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
-import { UpdateSessionDto } from '../../dto/update-session.dto';
+import { UpdateSessionDto } from '../../dto/session/update-session.dto';
 
 @Injectable()
 export class UpdateSessionUseCase {

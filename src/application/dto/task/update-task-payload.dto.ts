@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { UpdateTaskDto } from '../update-task.dto';
+import { UpdateTaskDto } from './update-task.dto';
 
 export class UpdateTaskPayloadDto {
   @IsUUID()

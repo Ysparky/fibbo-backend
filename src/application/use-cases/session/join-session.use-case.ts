@@ -3,7 +3,7 @@ import { SessionNotFoundException } from 'src/core/exceptions/session.exception'
 import { v4 as uuidv4 } from 'uuid';
 import { User, UserRole } from '../../../core/entities/user.entity';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
-import { JoinSessionDto } from '../../dto/join-session.dto';
+import { JoinSessionDto } from '../../dto/session/join-session.dto';
 
 @Injectable()
 export class JoinSessionUseCase {

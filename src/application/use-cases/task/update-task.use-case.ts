@@ -5,7 +5,7 @@ import {
   TaskValidationException,
 } from '../../../core/exceptions/task.exception';
 import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
-import { UpdateTaskDto } from '../../dto/update-task.dto';
+import { UpdateTaskDto } from '../../dto/task/update-task.dto';
 
 @Injectable()
 export class UpdateTaskUseCase {

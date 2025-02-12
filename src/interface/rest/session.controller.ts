@@ -11,9 +11,9 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { CreateSessionDto } from '../../application/dto/create-session.dto';
-import { JoinSessionDto } from '../../application/dto/join-session.dto';
-import { UpdateSessionDto } from '../../application/dto/update-session.dto';
+import { CreateSessionDto } from '../../application/dto/session/create-session.dto';
+import { JoinSessionDto } from '../../application/dto/session/join-session.dto';
+import { UpdateSessionDto } from '../../application/dto/session/update-session.dto';
 import { CreateSessionUseCase } from '../../application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from '../../application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from '../../application/use-cases/session/get-session.use-case';

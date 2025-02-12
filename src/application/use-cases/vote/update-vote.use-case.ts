@@ -5,7 +5,7 @@ import {
 } from 'src/core/exceptions/vote.exception';
 import { Vote } from '../../../core/entities/vote.entity';
 import { IVoteRepository } from '../../../core/interfaces/repositories/vote.repository.interface';
-import { UpdateVoteDto } from '../../dto/update-vote.dto';
+import { UpdateVoteDto } from '../../dto/vote/update-vote.dto';
 
 @Injectable()
 export class UpdateVoteUseCase {

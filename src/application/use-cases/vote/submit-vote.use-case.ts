@@ -5,7 +5,7 @@ import { TaskNotFoundException } from '../../../core/exceptions/task.exception';
 import { VoteOperationException } from '../../../core/exceptions/vote.exception';
 import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
 import { IVoteRepository } from '../../../core/interfaces/repositories/vote.repository.interface';
-import { SubmitVoteDto } from '../../dto/submit-vote.dto';
+import { SubmitVoteDto } from '../../dto/vote/submit-vote.dto';
 
 @Injectable()
 export class SubmitVoteUseCase {

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Session } from '../../../core/entities/session.entity';
 import { User, UserRole } from '../../../core/entities/user.entity';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
-import { CreateSessionDto } from '../../dto/create-session.dto';
+import { CreateSessionDto } from '../../dto/session/create-session.dto';
 
 @Injectable()
 export class CreateSessionUseCase {

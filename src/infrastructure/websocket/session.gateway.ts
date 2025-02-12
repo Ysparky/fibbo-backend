@@ -13,12 +13,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GetTaskVotesUseCase } from 'src/application/use-cases/vote/get-task-votes.use-case';
-import { CreateTaskDto } from '../../application/dto/create-task.dto';
-import { JoinSessionDto } from '../../application/dto/join-session.dto';
-import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
+import { JoinSessionDto } from '../../application/dto/session/join-session.dto';
 import { ChangeCurrentTaskPayloadDto } from '../../application/dto/task/change-current-task-payload.dto';
+import { CreateTaskDto } from '../../application/dto/task/create-task.dto';
 import { DeleteTaskPayloadDto } from '../../application/dto/task/delete-task-payload.dto';
 import { UpdateTaskPayloadDto } from '../../application/dto/task/update-task-payload.dto';
+import { SubmitVoteDto } from '../../application/dto/vote/submit-vote.dto';
 import { UpdateVotePayloadDto } from '../../application/dto/vote/update-vote-payload.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
 import { HandleDisconnectUseCase } from '../../application/use-cases/session/handle-disconnect.use-case';
