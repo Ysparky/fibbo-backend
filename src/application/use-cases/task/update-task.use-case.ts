@@ -1,5 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Task } from '../../../core/entities/task.entity';
+import {
+  TaskNotFoundException,
+  TaskValidationException,
+} from '../../../core/exceptions/task.exception';
 import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
 import { UpdateTaskDto } from '../../dto/update-task.dto';
 
@@ -11,16 +15,18 @@ export class UpdateTaskUseCase {
   ) {}
 
   async execute(id: string, dto: UpdateTaskDto): Promise<Task> {
-    const existingTask = await this.taskRepository.findById(id);
-    if (!existingTask) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+    const task = await this.taskRepository.findById(id);
+    if (!task) {
+      throw new TaskNotFoundException(id);
     }
 
-    existingTask.title = dto.title ?? existingTask.title;
-    existingTask.description = dto.description ?? existingTask.description;
-    existingTask.finalEstimate =
-      dto.finalEstimate ?? existingTask.finalEstimate;
+    if (!dto.title && !dto.description) {
+      throw new TaskValidationException('No valid update fields provided');
+    }
 
-    return this.taskRepository.update(existingTask);
+    return this.taskRepository.update({
+      ...task,
+      ...dto,
+    });
   }
 }

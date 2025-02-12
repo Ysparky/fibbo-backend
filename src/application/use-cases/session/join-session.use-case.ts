@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { SessionNotFoundException } from 'src/core/exceptions/session.exception';
 import { v4 as uuidv4 } from 'uuid';
 import { User, UserRole } from '../../../core/entities/user.entity';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
@@ -14,7 +15,7 @@ export class JoinSessionUseCase {
   async execute(dto: JoinSessionDto): Promise<User> {
     const session = await this.sessionRepository.findById(dto.sessionId);
     if (!session) {
-      throw new NotFoundException('Session not found');
+      throw new SessionNotFoundException(dto.sessionId);
     }
 
     const participant = new User(

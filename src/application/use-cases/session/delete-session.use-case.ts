@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { SessionNotFoundException } from 'src/core/exceptions/session.exception';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class DeleteSessionUseCase {
   async execute(id: string): Promise<void> {
     const session = await this.sessionRepository.findById(id);
     if (!session) {
-      throw new NotFoundException(`Session with ID ${id} not found`);
+      throw new SessionNotFoundException(id);
     }
 
     await this.sessionRepository.delete(id);

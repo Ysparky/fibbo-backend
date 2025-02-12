@@ -1,4 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  VoteAccessDeniedException,
+  VoteNotFoundException,
+} from 'src/core/exceptions/vote.exception';
 import { Vote } from '../../../core/entities/vote.entity';
 import { IVoteRepository } from '../../../core/interfaces/repositories/vote.repository.interface';
 import { UpdateVoteDto } from '../../dto/update-vote.dto';
@@ -13,11 +17,11 @@ export class UpdateVoteUseCase {
   async execute(id: string, userId: string, dto: UpdateVoteDto): Promise<Vote> {
     const vote = await this.voteRepository.findById(id);
     if (!vote) {
-      throw new NotFoundException(`Vote with ID ${id} not found`);
+      throw new VoteNotFoundException(id);
     }
 
     if (vote.userId !== userId) {
-      throw new Error('User can only update their own votes');
+      throw new VoteAccessDeniedException();
     }
 
     vote.value = dto.value;

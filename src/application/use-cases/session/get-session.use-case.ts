@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { SessionNotFoundException } from 'src/core/exceptions/session.exception';
 import { Session } from '../../../core/entities/session.entity';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
 
@@ -12,7 +13,7 @@ export class GetSessionUseCase {
   async execute(id: string): Promise<Session> {
     const session = await this.sessionRepository.findById(id);
     if (!session) {
-      throw new NotFoundException(`Session with ID ${id} not found`);
+      throw new SessionNotFoundException(id);
     }
     return session;
   }

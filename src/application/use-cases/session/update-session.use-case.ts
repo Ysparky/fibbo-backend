@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { SessionNotFoundException } from 'src/core/exceptions/session.exception';
 import { Session } from '../../../core/entities/session.entity';
 import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
 import { UpdateSessionDto } from '../../dto/update-session.dto';
@@ -13,7 +14,7 @@ export class UpdateSessionUseCase {
   async execute(id: string, dto: UpdateSessionDto): Promise<Session> {
     const session = await this.sessionRepository.findById(id);
     if (!session) {
-      throw new NotFoundException(`Session with ID ${id} not found`);
+      throw new SessionNotFoundException(id);
     }
 
     session.name = dto.name ?? session.name;

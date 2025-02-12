@@ -45,6 +45,17 @@ export class PrismaVoteRepository implements IVoteRepository {
     return votes.map((vote) => this.mapToEntity(vote));
   }
 
+  async findByUserAndTask(
+    userId: string,
+    taskId: string,
+  ): Promise<Vote | null> {
+    const vote = await this.prisma.vote.findFirst({
+      where: { userId, taskId },
+    });
+
+    return vote ? this.mapToEntity(vote) : null;
+  }
+
   async update(vote: Vote): Promise<Vote> {
     const updatedVote = await this.prisma.vote.update({
       where: { id: vote.id },
