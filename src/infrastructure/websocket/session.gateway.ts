@@ -14,12 +14,29 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GetTaskVotesUseCase } from 'src/application/use-cases/vote/get-task-votes.use-case';
 import { JoinSessionDto } from '../../application/dto/session/join-session.dto';
+import {
+  WsJoinSessionResponseDto,
+  WsLeaveSessionResponseDto,
+  WsVotingStateResponseDto,
+} from '../../application/dto/session/session-response.dto';
 import { ChangeCurrentTaskPayloadDto } from '../../application/dto/task/change-current-task-payload.dto';
 import { CreateTaskDto } from '../../application/dto/task/create-task.dto';
 import { DeleteTaskPayloadDto } from '../../application/dto/task/delete-task-payload.dto';
+import {
+  CurrentTaskChangedResponseDto,
+  TaskDeletedResponseDto,
+  TaskResponseDto,
+  TaskUpdatedResponseDto,
+} from '../../application/dto/task/task-response.dto';
 import { UpdateTaskPayloadDto } from '../../application/dto/task/update-task-payload.dto';
 import { SubmitVoteDto } from '../../application/dto/vote/submit-vote.dto';
 import { UpdateVotePayloadDto } from '../../application/dto/vote/update-vote-payload.dto';
+import {
+  VoteResponseDto,
+  VoteRevealedResponseDto,
+  VoteSubmittedResponseDto,
+  VoteUpdatedResponseDto,
+} from '../../application/dto/vote/vote-response.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
 import { HandleDisconnectUseCase } from '../../application/use-cases/session/handle-disconnect.use-case';
 import { HandleReconnectUseCase } from '../../application/use-cases/session/handle-reconnect.use-case';
@@ -29,7 +46,6 @@ import { ChangeCurrentTaskUseCase } from '../../application/use-cases/task/chang
 import { CreateTaskUseCase } from '../../application/use-cases/task/create-task.use-case';
 import { DeleteTaskUseCase } from '../../application/use-cases/task/delete-task.use-case';
 import { UpdateTaskUseCase } from '../../application/use-cases/task/update-task.use-case';
-import { GetUserVotesUseCase } from '../../application/use-cases/vote/get-user-votes.use-case';
 import { SubmitVoteUseCase } from '../../application/use-cases/vote/submit-vote.use-case';
 import { UpdateVoteUseCase } from '../../application/use-cases/vote/update-vote.use-case';
 import { UserRole } from '../../core/entities/user.entity';
@@ -60,7 +76,6 @@ export class SessionGateway
     private readonly submitVoteUseCase: SubmitVoteUseCase,
     private readonly getTaskVotesUseCase: GetTaskVotesUseCase,
     private readonly updateVoteUseCase: UpdateVoteUseCase,
-    private readonly getUserVotesUseCase: GetUserVotesUseCase,
     private readonly handleDisconnectUseCase: HandleDisconnectUseCase,
     private readonly handleReconnectUseCase: HandleReconnectUseCase,
     private readonly changeCurrentTaskUseCase: ChangeCurrentTaskUseCase,
@@ -119,7 +134,10 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.JOIN_SESSION)
-  async handleJoinSession(client: Socket, payload: JoinSessionDto) {
+  async handleJoinSession(
+    client: Socket,
+    payload: JoinSessionDto,
+  ): Promise<WsJoinSessionResponseDto> {
     const participant = await this.joinSessionUseCase.execute(payload);
 
     client.join(payload.sessionId);
@@ -130,11 +148,21 @@ export class SessionGateway
       role: participant.role,
     });
 
-    return { status: 'ok', participant };
+    return {
+      status: 'ok',
+      participant: {
+        id: participant.id,
+        name: participant.name,
+        role: participant.role,
+      },
+    };
   }
 
   @SubscribeMessage(WebSocketEvents.LEAVE_SESSION)
-  async handleLeaveSession(client: Socket, sessionId: string) {
+  async handleLeaveSession(
+    client: Socket,
+    sessionId: string,
+  ): Promise<WsLeaveSessionResponseDto> {
     try {
       await this.handleDisconnectUseCase.execute(client.data.user.id, true); // true = remove from session
 
@@ -156,7 +184,10 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.START_VOTING)
   @Roles(UserRole.MODERATOR)
-  async handleStartVoting(client: Socket, sessionId: string) {
+  async handleStartVoting(
+    client: Socket,
+    sessionId: string,
+  ): Promise<WsVotingStateResponseDto> {
     try {
       await this.updateSessionUseCase.execute(sessionId, {
         isVotingActive: true,
@@ -170,7 +201,10 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.END_VOTING)
   @Roles(UserRole.MODERATOR)
-  async handleEndVoting(client: Socket, sessionId: string) {
+  async handleEndVoting(
+    client: Socket,
+    sessionId: string,
+  ): Promise<WsVotingStateResponseDto> {
     try {
       await this.updateSessionUseCase.execute(sessionId, {
         isVotingActive: false,
@@ -184,34 +218,51 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.REVEAL_VOTES)
   @Roles(UserRole.MODERATOR)
-  async handleRevealVotes(client: Socket, taskId: string) {
+  async handleRevealVotes(
+    client: Socket,
+    taskId: string,
+  ): Promise<VoteRevealedResponseDto> {
     try {
       const votes = await this.getTaskVotesUseCase.execute(taskId);
       this.server.to(taskId).emit(WebSocketEvents.VOTES_REVEALED, { votes });
       return { status: 'ok', votes };
     } catch (error) {
-      return { status: 'error', message: error.message };
+      return { status: 'error', message: error.message, votes: [] };
     }
   }
 
   @SubscribeMessage(WebSocketEvents.SUBMIT_VOTE)
-  async handleSubmitVote(client: Socket, payload: SubmitVoteDto) {
+  async handleSubmitVote(
+    client: Socket,
+    payload: SubmitVoteDto,
+  ): Promise<VoteResponseDto> {
     const vote = await this.submitVoteUseCase.execute(
       client.data.user.id,
       payload,
     );
 
-    this.server.to(payload.taskId).emit(WebSocketEvents.VOTE_SUBMITTED, {
+    const response: VoteSubmittedResponseDto = {
+      status: 'ok',
       userId: client.data.user.id,
       taskId: payload.taskId,
       value: payload.value,
-    });
+    };
 
-    return { status: 'ok', vote };
+    this.server
+      .to(payload.taskId)
+      .emit(WebSocketEvents.VOTE_SUBMITTED, response);
+
+    return {
+      status: 'ok',
+      vote,
+    };
   }
 
   @SubscribeMessage(WebSocketEvents.UPDATE_VOTE)
-  async handleUpdateVote(client: Socket, payload: UpdateVotePayloadDto) {
+  async handleUpdateVote(
+    client: Socket,
+    payload: UpdateVotePayloadDto,
+  ): Promise<VoteUpdatedResponseDto> {
     const vote = await this.updateVoteUseCase.execute(
       payload.voteId,
       client.data.user.id,
@@ -227,50 +278,56 @@ export class SessionGateway
     return { status: 'ok', vote };
   }
 
-  @SubscribeMessage(WebSocketEvents.GET_USER_VOTES)
-  async handleGetUserVotes(client: Socket, taskId: string) {
-    try {
-      const votes = await this.getUserVotesUseCase.execute(client.data.user.id);
-      return { status: 'ok', votes };
-    } catch (error) {
-      return { status: 'error', message: error.message };
-    }
-  }
-
   @SubscribeMessage(WebSocketEvents.TASK_CREATED)
   @Roles(UserRole.MODERATOR)
-  async handleTaskCreated(client: Socket, payload: CreateTaskDto) {
+  async handleTaskCreated(
+    client: Socket,
+    payload: CreateTaskDto,
+  ): Promise<TaskResponseDto> {
     const task = await this.createTaskUseCase.execute(payload);
 
-    this.server.to(payload.sessionId).emit(WebSocketEvents.TASK_CREATED, {
+    const response: TaskResponseDto = {
+      status: 'ok',
       task,
-    });
+    };
 
-    return { status: 'ok', task };
+    this.server
+      .to(payload.sessionId)
+      .emit(WebSocketEvents.TASK_CREATED, response);
+
+    return response;
   }
 
   @SubscribeMessage(WebSocketEvents.TASK_UPDATED)
   @Roles(UserRole.MODERATOR)
-  async handleTaskUpdated(client: Socket, payload: UpdateTaskPayloadDto) {
+  async handleTaskUpdated(
+    client: Socket,
+    payload: UpdateTaskPayloadDto,
+  ): Promise<TaskUpdatedResponseDto> {
     const task = await this.updateTaskUseCase.execute(
       payload.taskId,
       payload.update,
     );
 
-    this.server.to(task.sessionId).emit(WebSocketEvents.TASK_UPDATED, {
+    const response: TaskUpdatedResponseDto = {
+      status: 'ok',
       task,
-    });
+    };
 
-    return { status: 'ok', task };
+    this.server.to(task.sessionId).emit(WebSocketEvents.TASK_UPDATED, response);
+
+    return response;
   }
 
   @SubscribeMessage(WebSocketEvents.TASK_DELETED)
   @Roles(UserRole.MODERATOR)
-  async handleTaskDeleted(client: Socket, payload: DeleteTaskPayloadDto) {
+  async handleTaskDeleted(
+    client: Socket,
+    payload: DeleteTaskPayloadDto,
+  ): Promise<TaskDeletedResponseDto> {
     try {
       await this.deleteTaskUseCase.execute(payload.taskId);
 
-      // Get the task's session ID from the client's rooms
       const sessionId = Array.from(client.rooms).find(
         (room) => room !== client.id,
       );
@@ -278,11 +335,14 @@ export class SessionGateway
         throw new WsCustomException('Client not in any session', 'NO_SESSION');
       }
 
-      this.server.to(sessionId).emit(WebSocketEvents.TASK_DELETED, {
+      const response: TaskDeletedResponseDto = {
+        status: 'ok',
         taskId: payload.taskId,
-      });
+      };
 
-      return { status: 'ok' };
+      this.server.to(sessionId).emit(WebSocketEvents.TASK_DELETED, response);
+
+      return response;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new WsCustomException('Task not found', 'TASK_NOT_FOUND');
@@ -296,18 +356,21 @@ export class SessionGateway
   async handleCurrentTaskChanged(
     client: Socket,
     payload: ChangeCurrentTaskPayloadDto,
-  ) {
+  ): Promise<CurrentTaskChangedResponseDto> {
     await this.changeCurrentTaskUseCase.execute(
       payload.sessionId,
       payload.taskId,
     );
 
+    const response: CurrentTaskChangedResponseDto = {
+      status: 'ok',
+      taskId: payload.taskId,
+    };
+
     this.server
       .to(payload.sessionId)
-      .emit(WebSocketEvents.CURRENT_TASK_CHANGED, {
-        taskId: payload.taskId,
-      });
+      .emit(WebSocketEvents.CURRENT_TASK_CHANGED, response);
 
-    return { status: 'ok' };
+    return response;
   }
 }
