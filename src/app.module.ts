@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { CreateSessionUseCase } from './application/use-cases/session/create-session.use-case';
+import { DeleteSessionUseCase } from './application/use-cases/session/delete-session.use-case';
+import { GetSessionUseCase } from './application/use-cases/session/get-session.use-case';
 import { JoinSessionUseCase } from './application/use-cases/session/join-session.use-case';
+import { UpdateSessionUseCase } from './application/use-cases/session/update-session.use-case';
 import { CreateTaskUseCase } from './application/use-cases/task/create-task.use-case';
 import { DeleteTaskUseCase } from './application/use-cases/task/delete-task.use-case';
 import { GetTaskUseCase } from './application/use-cases/task/get-task.use-case';
@@ -26,13 +29,19 @@ import { TaskController } from './interface/rest/task.controller';
       provide: 'ITaskRepository',
       useClass: PrismaTaskRepository,
     },
+    // Session Use Cases
     CreateSessionUseCase,
+    GetSessionUseCase,
+    UpdateSessionUseCase,
+    DeleteSessionUseCase,
     JoinSessionUseCase,
+    // Task Use Cases
     CreateTaskUseCase,
     GetTaskUseCase,
     UpdateTaskUseCase,
     DeleteTaskUseCase,
     GetTasksBySessionUseCase,
+    // WebSocket Gateway
     SessionGateway,
   ],
 })
