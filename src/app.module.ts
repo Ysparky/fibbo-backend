@@ -9,16 +9,20 @@ import { DeleteTaskUseCase } from './application/use-cases/task/delete-task.use-
 import { GetTaskUseCase } from './application/use-cases/task/get-task.use-case';
 import { GetTasksBySessionUseCase } from './application/use-cases/task/get-tasks-by-session.use-case';
 import { UpdateTaskUseCase } from './application/use-cases/task/update-task.use-case';
+import { GetTaskVotesUseCase } from './application/use-cases/vote/get-task-votes.use-case';
+import { SubmitVoteUseCase } from './application/use-cases/vote/submit-vote.use-case';
 import { PrismaService } from './infrastructure/persistence/prisma.service';
 import { PrismaSessionRepository } from './infrastructure/persistence/prisma.session.repository';
 import { PrismaTaskRepository } from './infrastructure/persistence/prisma.task.repository';
+import { PrismaVoteRepository } from './infrastructure/persistence/prisma.vote.repository';
 import { SessionGateway } from './infrastructure/websocket/session.gateway';
 import { SessionController } from './interface/rest/session.controller';
 import { TaskController } from './interface/rest/task.controller';
+import { VoteController } from './interface/rest/vote.controller';
 
 @Module({
   imports: [],
-  controllers: [SessionController, TaskController],
+  controllers: [SessionController, TaskController, VoteController],
   providers: [
     PrismaService,
     {
@@ -28,6 +32,10 @@ import { TaskController } from './interface/rest/task.controller';
     {
       provide: 'ITaskRepository',
       useClass: PrismaTaskRepository,
+    },
+    {
+      provide: 'IVoteRepository',
+      useClass: PrismaVoteRepository,
     },
     // Session Use Cases
     CreateSessionUseCase,
@@ -41,6 +49,9 @@ import { TaskController } from './interface/rest/task.controller';
     UpdateTaskUseCase,
     DeleteTaskUseCase,
     GetTasksBySessionUseCase,
+    // Vote Use Cases
+    SubmitVoteUseCase,
+    GetTaskVotesUseCase,
     // WebSocket Gateway
     SessionGateway,
   ],
