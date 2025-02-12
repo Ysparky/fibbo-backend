@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Task } from '../../../core/entities/task.entity';
 import { ISessionRepository } from '../../../core/interfaces/session.repository.interface';
@@ -8,7 +8,9 @@ import { CreateTaskDto } from '../../dto/create-task.dto';
 @Injectable()
 export class CreateTaskUseCase {
   constructor(
+    @Inject('ITaskRepository')
     private readonly taskRepository: ITaskRepository,
+    @Inject('ISessionRepository')
     private readonly sessionRepository: ISessionRepository,
   ) {}
 
