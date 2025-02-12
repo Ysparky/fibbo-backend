@@ -22,19 +22,17 @@ import { PrismaSessionRepository } from './infrastructure/persistence/prisma.ses
 import { PrismaTaskRepository } from './infrastructure/persistence/prisma.task.repository';
 import { PrismaVoteRepository } from './infrastructure/persistence/prisma.vote.repository';
 import { SessionGateway } from './infrastructure/websocket/session.gateway';
+import { TaskGateway } from './infrastructure/websocket/task.gateway';
+import { VoteGateway } from './infrastructure/websocket/vote.gateway';
 import { SessionController } from './interface/rest/session.controller';
 import { TaskController } from './interface/rest/task.controller';
 import { VoteController } from './interface/rest/vote.controller';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    AuthModule,
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
   controllers: [SessionController, TaskController, VoteController],
   providers: [
+    // Infrastructure
     PrismaService,
     {
       provide: 'ISessionRepository',
@@ -67,8 +65,10 @@ import { VoteController } from './interface/rest/vote.controller';
     SubmitVoteUseCase,
     GetTaskVotesUseCase,
     UpdateVoteUseCase,
-    // WebSocket Gateway
+    // Gateways
     SessionGateway,
+    TaskGateway,
+    VoteGateway,
   ],
 })
 export class AppModule {}
