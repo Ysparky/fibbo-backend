@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -10,11 +11,14 @@ import { JoinSessionDto } from '../../application/dto/join-session.dto';
 import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
 import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
+import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
+
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
+@UseGuards(WsAuthGuard)
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -24,7 +28,12 @@ export class SessionGateway
   constructor(private readonly joinSessionUseCase: JoinSessionUseCase) {}
 
   async handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    try {
+      console.log(`Client connected: ${client.id}`);
+    } catch (error) {
+      console.error('Connection error:', error);
+      client.disconnect();
+    }
   }
 
   async handleDisconnect(client: Socket) {
