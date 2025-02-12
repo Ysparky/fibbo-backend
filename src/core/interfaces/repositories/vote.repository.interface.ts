@@ -1,4 +1,4 @@
-import { Vote } from '../entities/vote.entity';
+import { Vote } from '../../entities/vote.entity';
 
 export interface IVoteRepository {
   create(vote: Vote): Promise<Vote>;

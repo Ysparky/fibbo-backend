@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CreateSessionUseCase } from './application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from './application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from './application/use-cases/session/get-session.use-case';
@@ -11,6 +12,7 @@ import { GetTasksBySessionUseCase } from './application/use-cases/task/get-tasks
 import { UpdateTaskUseCase } from './application/use-cases/task/update-task.use-case';
 import { GetTaskVotesUseCase } from './application/use-cases/vote/get-task-votes.use-case';
 import { SubmitVoteUseCase } from './application/use-cases/vote/submit-vote.use-case';
+import { AuthModule } from './infrastructure/auth/auth.module';
 import { PrismaService } from './infrastructure/persistence/prisma.service';
 import { PrismaSessionRepository } from './infrastructure/persistence/prisma.session.repository';
 import { PrismaTaskRepository } from './infrastructure/persistence/prisma.task.repository';
@@ -21,7 +23,12 @@ import { TaskController } from './interface/rest/task.controller';
 import { VoteController } from './interface/rest/vote.controller';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    AuthModule,
+  ],
   controllers: [SessionController, TaskController, VoteController],
   providers: [
     PrismaService,

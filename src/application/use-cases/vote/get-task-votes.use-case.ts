@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Vote } from '../../../core/entities/vote.entity';
-import { ITaskRepository } from '../../../core/interfaces/task.repository.interface';
-import { IVoteRepository } from '../../../core/interfaces/vote.repository.interface';
+import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
+import { IVoteRepository } from '../../../core/interfaces/repositories/vote.repository.interface';
 
 @Injectable()
 export class GetTaskVotesUseCase {

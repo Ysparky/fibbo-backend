@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ISessionRepository } from '../../../core/interfaces/session.repository.interface';
+import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
 
 @Injectable()
 export class DeleteSessionUseCase {

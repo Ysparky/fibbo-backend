@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Task } from '../../../core/entities/task.entity';
-import { ISessionRepository } from '../../../core/interfaces/session.repository.interface';
-import { ITaskRepository } from '../../../core/interfaces/task.repository.interface';
+import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
+import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
 import { CreateTaskDto } from '../../dto/create-task.dto';
 
 @Injectable()

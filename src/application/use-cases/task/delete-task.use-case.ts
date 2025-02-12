@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ITaskRepository } from '../../../core/interfaces/task.repository.interface';
+import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
 
 @Injectable()
 export class DeleteTaskUseCase {

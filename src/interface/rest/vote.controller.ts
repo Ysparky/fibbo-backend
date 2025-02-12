@@ -1,10 +1,20 @@
-import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
 import { GetTaskVotesUseCase } from '../../application/use-cases/vote/get-task-votes.use-case';
 import { SubmitVoteUseCase } from '../../application/use-cases/vote/submit-vote.use-case';
 import { Vote } from '../../core/entities/vote.entity';
+import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 
 @Controller('votes')
+@UseGuards(JwtAuthGuard)
 export class VoteController {
   constructor(
     private readonly submitVoteUseCase: SubmitVoteUseCase,
@@ -13,9 +23,7 @@ export class VoteController {
 
   @Post()
   async submitVote(@Request() req, @Body() dto: SubmitVoteDto): Promise<Vote> {
-    // TODO: Get userId from JWT token after implementing authentication
-    const userId = req.user?.id || 'temporary-user-id';
-    return this.submitVoteUseCase.execute(userId, dto);
+    return this.submitVoteUseCase.execute(req.user.id, dto);
   }
 
   @Get('task/:taskId')

@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { User, UserRole } from '../../../core/entities/user.entity';
-import { ISessionRepository } from '../../../core/interfaces/session.repository.interface';
+import { ISessionRepository } from '../../../core/interfaces/repositories/session.repository.interface';
 import { JoinSessionDto } from '../../dto/join-session.dto';
 
 @Injectable()

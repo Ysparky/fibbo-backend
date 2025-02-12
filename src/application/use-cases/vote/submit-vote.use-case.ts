@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Vote } from '../../../core/entities/vote.entity';
-import { ITaskRepository } from '../../../core/interfaces/task.repository.interface';
-import { IVoteRepository } from '../../../core/interfaces/vote.repository.interface';
+import { ITaskRepository } from '../../../core/interfaces/repositories/task.repository.interface';
+import { IVoteRepository } from '../../../core/interfaces/repositories/vote.repository.interface';
 import { SubmitVoteDto } from '../../dto/submit-vote.dto';
 
 @Injectable()

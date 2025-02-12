@@ -3,9 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Post,
   Put,
+  Request,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateSessionDto } from '../../application/dto/create-session.dto';
 import { JoinSessionDto } from '../../application/dto/join-session.dto';
@@ -16,7 +20,8 @@ import { GetSessionUseCase } from '../../application/use-cases/session/get-sessi
 import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
 import { Session } from '../../core/entities/session.entity';
-import { User } from '../../core/entities/user.entity';
+import { IAuthService } from '../../core/interfaces/auth/auth.interface';
+import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 
 @Controller('sessions')
 export class SessionController {
@@ -26,33 +31,62 @@ export class SessionController {
     private readonly updateSessionUseCase: UpdateSessionUseCase,
     private readonly deleteSessionUseCase: DeleteSessionUseCase,
     private readonly joinSessionUseCase: JoinSessionUseCase,
+    @Inject('IAuthService')
+    private readonly authService: IAuthService,
   ) {}
 
   @Post()
-  async createSession(@Body() dto: CreateSessionDto): Promise<Session> {
-    return this.createSessionUseCase.execute(dto);
-  }
+  async createSession(@Body() dto: CreateSessionDto) {
+    const session = await this.createSessionUseCase.execute(dto);
+    const moderator = session.participants.find(
+      (p) => p.id === session.moderatorId,
+    );
+    const token = await this.authService.generateToken(moderator);
 
-  @Get(':id')
-  async getSession(@Param('id') id: string): Promise<Session> {
-    return this.getSessionUseCase.execute(id);
-  }
-
-  @Put(':id')
-  async updateSession(
-    @Param('id') id: string,
-    @Body() dto: UpdateSessionDto,
-  ): Promise<Session> {
-    return this.updateSessionUseCase.execute(id, dto);
-  }
-
-  @Delete(':id')
-  async deleteSession(@Param('id') id: string): Promise<void> {
-    return this.deleteSessionUseCase.execute(id);
+    return {
+      session,
+      token,
+    };
   }
 
   @Post('join')
-  async joinSession(@Body() dto: JoinSessionDto): Promise<User> {
-    return this.joinSessionUseCase.execute(dto);
+  async joinSession(@Body() dto: JoinSessionDto) {
+    const participant = await this.joinSessionUseCase.execute(dto);
+    const token = await this.authService.generateToken(participant);
+
+    return {
+      participant,
+      token,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  getSession(@Param('id') id: string): Promise<Session> {
+    return this.getSessionUseCase.execute(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  updateSession(
+    @Param('id') id: string,
+    @Body() dto: UpdateSessionDto,
+    @Request() req,
+  ): Promise<Session> {
+    // Only moderator can update session
+    if (req.user.role !== 'MODERATOR') {
+      throw new UnauthorizedException('Only moderator can update session');
+    }
+    return this.updateSessionUseCase.execute(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  deleteSession(@Param('id') id: string, @Request() req): Promise<void> {
+    // Only moderator can delete session
+    if (req.user.role !== 'MODERATOR') {
+      throw new UnauthorizedException('Only moderator can delete session');
+    }
+    return this.deleteSessionUseCase.execute(id);
   }
 }

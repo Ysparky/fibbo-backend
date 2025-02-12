@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Vote } from '../../core/entities/vote.entity';
-import { IVoteRepository } from '../../core/interfaces/vote.repository.interface';
+import { IVoteRepository } from '../../core/interfaces/repositories/vote.repository.interface';
 import { PrismaService } from './prisma.service';
 
 @Injectable()
