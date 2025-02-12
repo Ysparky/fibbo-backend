@@ -13,15 +13,20 @@ import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
 import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
+import { GetUserVotesUseCase } from '../../application/use-cases/vote/get-user-votes.use-case';
 import { SubmitVoteUseCase } from '../../application/use-cases/vote/submit-vote.use-case';
+import { UpdateVoteUseCase } from '../../application/use-cases/vote/update-vote.use-case';
+import { UserRole } from '../../core/entities/user.entity';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
+import { WsRolesGuard } from '../auth/guards/ws-roles.guard';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-@UseGuards(WsAuthGuard)
+@UseGuards(WsAuthGuard, WsRolesGuard)
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -33,6 +38,8 @@ export class SessionGateway
     private readonly updateSessionUseCase: UpdateSessionUseCase,
     private readonly submitVoteUseCase: SubmitVoteUseCase,
     private readonly getTaskVotesUseCase: GetTaskVotesUseCase,
+    private readonly updateVoteUseCase: UpdateVoteUseCase,
+    private readonly getUserVotesUseCase: GetUserVotesUseCase,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -85,6 +92,7 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.START_VOTING)
+  @Roles(UserRole.MODERATOR)
   async handleStartVoting(client: Socket, sessionId: string) {
     try {
       await this.updateSessionUseCase.execute(sessionId, {
@@ -98,6 +106,7 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.END_VOTING)
+  @Roles(UserRole.MODERATOR)
   async handleEndVoting(client: Socket, sessionId: string) {
     try {
       await this.updateSessionUseCase.execute(sessionId, {
@@ -111,6 +120,7 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.REVEAL_VOTES)
+  @Roles(UserRole.MODERATOR)
   async handleRevealVotes(client: Socket, taskId: string) {
     try {
       const votes = await this.getTaskVotesUseCase.execute(taskId);
@@ -134,6 +144,40 @@ export class SessionGateway
         value: payload.value,
       });
       return { status: 'ok', vote };
+    } catch (error) {
+      return { status: 'error', message: error.message };
+    }
+  }
+
+  @SubscribeMessage(WebSocketEvents.UPDATE_VOTE)
+  async handleUpdateVote(
+    client: Socket,
+    payload: { voteId: string; value: number },
+  ) {
+    try {
+      const vote = await this.updateVoteUseCase.execute(
+        payload.voteId,
+        client.data.user.id,
+        { value: payload.value },
+      );
+
+      this.server.to(vote.taskId).emit(WebSocketEvents.VOTE_UPDATED, {
+        voteId: vote.id,
+        userId: vote.userId,
+        value: vote.value,
+      });
+
+      return { status: 'ok', vote };
+    } catch (error) {
+      return { status: 'error', message: error.message };
+    }
+  }
+
+  @SubscribeMessage(WebSocketEvents.GET_USER_VOTES)
+  async handleGetUserVotes(client: Socket, taskId: string) {
+    try {
+      const votes = await this.getUserVotesUseCase.execute(client.data.user.id);
+      return { status: 'ok', votes };
     } catch (error) {
       return { status: 'error', message: error.message };
     }

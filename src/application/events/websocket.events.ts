@@ -14,6 +14,9 @@ export enum WebSocketEvents {
   VOTES_REVEALED = 'votesRevealed',
   VOTING_STARTED = 'votingStarted',
   VOTING_ENDED = 'votingEnded',
+  UPDATE_VOTE = 'updateVote',
+  VOTE_UPDATED = 'voteUpdated',
+  GET_USER_VOTES = 'getUserVotes',
 
   // Task events
   TASK_CREATED = 'taskCreated',

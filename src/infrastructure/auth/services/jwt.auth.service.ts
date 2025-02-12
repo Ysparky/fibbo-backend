@@ -31,4 +31,8 @@ export class JwtAuthService implements IAuthService {
   async validateUser(payload: JwtPayload): Promise<boolean> {
     return !!(payload.id && payload.name && payload.role);
   }
+
+  decode(token: string): JwtPayload {
+    return this.jwtService.decode(token) as JwtPayload;
+  }
 }

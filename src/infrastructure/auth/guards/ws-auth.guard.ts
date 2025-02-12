@@ -28,6 +28,10 @@ export class WsAuthGuard implements CanActivate {
       if (!isValid) {
         throw new WsException('Unauthorized');
       }
+
+      const payload = this.authService.decode(token);
+      client.data.user = payload;
+
       return true;
     } catch {
       throw new WsException('Unauthorized');
