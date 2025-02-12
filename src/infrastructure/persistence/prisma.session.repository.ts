@@ -1,72 +1,56 @@
 import { Injectable } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { Session } from '../../core/entities/session.entity';
 import { User } from '../../core/entities/user.entity';
-import { ISessionRepository } from '../../core/interfaces/repositories/session.repository.interface';
+import {
+  CreateSessionDto,
+  ISessionRepository,
+} from '../../core/interfaces/repositories/session.repository.interface';
 import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class PrismaSessionRepository implements ISessionRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create(session: Session): Promise<Session> {
-    const createdSession = await this.prisma.session.create({
+  async create(data: CreateSessionDto): Promise<Session> {
+    const session = await this.prisma.session.create({
       data: {
-        id: session.id,
-        name: session.name,
-        moderatorId: session.moderatorId,
-        isVotingActive: session.isVotingActive,
-        participants: {
-          create: session.participants.map((participant) => ({
-            id: participant.id,
-            name: participant.name,
-            role: participant.role,
-          })),
-        },
+        id: uuidv4(),
+        name: data.name,
+        isVotingActive: false,
       },
       include: {
-        participants: true,
+        users: true,
         tasks: true,
       },
     });
 
-    return this.mapToEntity(createdSession);
+    return this.mapToEntity(session);
   }
 
   async findById(id: string): Promise<Session | null> {
     const session = await this.prisma.session.findUnique({
       where: { id },
       include: {
-        participants: true,
-        tasks: {
-          include: {
-            votes: true,
-          },
-        },
+        users: true,
+        tasks: true,
       },
     });
 
     return session ? this.mapToEntity(session) : null;
   }
 
-  async update(session: Session): Promise<Session> {
-    const updatedSession = await this.prisma.session.update({
-      where: { id: session.id },
-      data: {
-        name: session.name,
-        currentTaskId: session.currentTaskId,
-        isVotingActive: session.isVotingActive,
-      },
+  async update(id: string, data: Partial<Session>): Promise<Session> {
+    const session = await this.prisma.session.update({
+      where: { id },
+      data,
       include: {
-        participants: true,
-        tasks: {
-          include: {
-            votes: true,
-          },
-        },
+        users: true,
+        tasks: true,
       },
     });
 
-    return this.mapToEntity(updatedSession);
+    return this.mapToEntity(session);
   }
 
   async delete(id: string): Promise<void> {
@@ -152,10 +136,9 @@ export class PrismaSessionRepository implements ISessionRepository {
     const session = new Session(
       prismaSession.id,
       prismaSession.name,
-      prismaSession.moderatorId,
+      prismaSession.currentTaskId,
+      prismaSession.isVotingActive,
     );
-    session.currentTaskId = prismaSession.currentTaskId;
-    session.isVotingActive = prismaSession.isVotingActive;
     session.participants = prismaSession.participants.map(
       (p: any) => new User(p.id, p.name, p.role),
     );

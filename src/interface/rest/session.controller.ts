@@ -38,11 +38,6 @@ export class SessionController {
     @Body() dto: CreateSessionDto,
     @Request() req,
   ): Promise<Session> {
-    // Ensure only moderators can create sessions
-    if (req.user.role !== UserRole.MODERATOR) {
-      throw new UnauthorizedException('Only moderators can create sessions');
-    }
-
     return this.createSessionUseCase.execute({
       ...dto,
       moderatorId: req.user.id,
