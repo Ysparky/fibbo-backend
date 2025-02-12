@@ -16,15 +16,18 @@ export class HandleDisconnectUseCase {
     userId: string;
   }> {
     const session = await this.sessionRepository.findByParticipantId(userId);
-    if (session) {
-      if (shouldRemove) {
-        await this.sessionRepository.removeParticipantFromAllSessions(userId);
-      }
-      return {
-        sessionId: session.id,
-        userId,
-      };
+
+    if (!session) {
+      return { sessionId: null, userId };
     }
-    return { sessionId: null, userId };
+
+    if (shouldRemove) {
+      await this.sessionRepository.removeParticipantFromAllSessions(userId);
+    }
+
+    return {
+      sessionId: session.id,
+      userId,
+    };
   }
 }
