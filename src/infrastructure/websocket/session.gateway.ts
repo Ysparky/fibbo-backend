@@ -1,4 +1,4 @@
-import { UseFilters, UseGuards } from '@nestjs/common';
+import { NotFoundException, UseFilters, UseGuards } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -8,13 +8,19 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GetTaskVotesUseCase } from 'src/application/use-cases/vote/get-task-votes.use-case';
+import { CreateTaskDto } from '../../application/dto/create-task.dto';
 import { JoinSessionDto } from '../../application/dto/join-session.dto';
 import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
+import { UpdateTaskDto } from '../../application/dto/update-task.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
 import { HandleDisconnectUseCase } from '../../application/use-cases/session/handle-disconnect.use-case';
 import { HandleReconnectUseCase } from '../../application/use-cases/session/handle-reconnect.use-case';
 import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
+import { ChangeCurrentTaskUseCase } from '../../application/use-cases/task/change-current-task.use-case';
+import { CreateTaskUseCase } from '../../application/use-cases/task/create-task.use-case';
+import { DeleteTaskUseCase } from '../../application/use-cases/task/delete-task.use-case';
+import { UpdateTaskUseCase } from '../../application/use-cases/task/update-task.use-case';
 import { GetUserVotesUseCase } from '../../application/use-cases/vote/get-user-votes.use-case';
 import { SubmitVoteUseCase } from '../../application/use-cases/vote/submit-vote.use-case';
 import { UpdateVoteUseCase } from '../../application/use-cases/vote/update-vote.use-case';
@@ -47,6 +53,10 @@ export class SessionGateway
     private readonly getUserVotesUseCase: GetUserVotesUseCase,
     private readonly handleDisconnectUseCase: HandleDisconnectUseCase,
     private readonly handleReconnectUseCase: HandleReconnectUseCase,
+    private readonly changeCurrentTaskUseCase: ChangeCurrentTaskUseCase,
+    private readonly createTaskUseCase: CreateTaskUseCase,
+    private readonly updateTaskUseCase: UpdateTaskUseCase,
+    private readonly deleteTaskUseCase: DeleteTaskUseCase,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -239,5 +249,106 @@ export class SessionGateway
     } catch (error) {
       return { status: 'error', message: error.message };
     }
+  }
+
+  @SubscribeMessage(WebSocketEvents.TASK_CREATED)
+  @Roles(UserRole.MODERATOR)
+  async handleTaskCreated(client: Socket, payload: CreateTaskDto) {
+    if (!payload.sessionId || !payload.title) {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['sessionId', 'title'],
+      });
+    }
+
+    const task = await this.createTaskUseCase.execute(payload);
+
+    this.server.to(payload.sessionId).emit(WebSocketEvents.TASK_CREATED, {
+      task,
+    });
+
+    return { status: 'ok', task };
+  }
+
+  @SubscribeMessage(WebSocketEvents.TASK_UPDATED)
+  @Roles(UserRole.MODERATOR)
+  async handleTaskUpdated(
+    client: Socket,
+    payload: { taskId: string; update: UpdateTaskDto },
+  ) {
+    if (!payload.taskId || !payload.update) {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['taskId', 'update'],
+      });
+    }
+
+    const task = await this.updateTaskUseCase.execute(
+      payload.taskId,
+      payload.update,
+    );
+
+    this.server.to(task.sessionId).emit(WebSocketEvents.TASK_UPDATED, {
+      task,
+    });
+
+    return { status: 'ok', task };
+  }
+
+  @SubscribeMessage(WebSocketEvents.TASK_DELETED)
+  @Roles(UserRole.MODERATOR)
+  async handleTaskDeleted(client: Socket, taskId: string) {
+    if (!taskId) {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['taskId'],
+      });
+    }
+
+    try {
+      await this.deleteTaskUseCase.execute(taskId);
+
+      // Get the task's session ID from the client's rooms
+      const sessionId = Array.from(client.rooms).find(
+        (room) => room !== client.id,
+      );
+      if (!sessionId) {
+        throw new WsCustomException('Client not in any session', 'NO_SESSION');
+      }
+
+      this.server.to(sessionId).emit(WebSocketEvents.TASK_DELETED, {
+        taskId,
+      });
+
+      return { status: 'ok' };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new WsCustomException('Task not found', 'TASK_NOT_FOUND');
+      }
+      throw error;
+    }
+  }
+
+  @SubscribeMessage(WebSocketEvents.CURRENT_TASK_CHANGED)
+  @Roles(UserRole.MODERATOR)
+  async handleCurrentTaskChanged(
+    client: Socket,
+    payload: { sessionId: string; taskId: string | null },
+  ) {
+    if (!payload.sessionId) {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['sessionId'],
+      });
+    }
+
+    await this.changeCurrentTaskUseCase.execute(
+      payload.sessionId,
+      payload.taskId,
+    );
+
+    this.server
+      .to(payload.sessionId)
+      .emit(WebSocketEvents.CURRENT_TASK_CHANGED, {
+        taskId: payload.taskId,
+      });
+
+    return { status: 'ok' };
   }
 }

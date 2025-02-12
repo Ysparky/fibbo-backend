@@ -7,6 +7,7 @@ import { HandleDisconnectUseCase } from './application/use-cases/session/handle-
 import { HandleReconnectUseCase } from './application/use-cases/session/handle-reconnect.use-case';
 import { JoinSessionUseCase } from './application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from './application/use-cases/session/update-session.use-case';
+import { ChangeCurrentTaskUseCase } from './application/use-cases/task/change-current-task.use-case';
 import { CreateTaskUseCase } from './application/use-cases/task/create-task.use-case';
 import { DeleteTaskUseCase } from './application/use-cases/task/delete-task.use-case';
 import { GetTaskUseCase } from './application/use-cases/task/get-task.use-case';
@@ -62,6 +63,7 @@ import { VoteController } from './interface/rest/vote.controller';
     UpdateTaskUseCase,
     DeleteTaskUseCase,
     GetTasksBySessionUseCase,
+    ChangeCurrentTaskUseCase,
     // Vote Use Cases
     SubmitVoteUseCase,
     GetTaskVotesUseCase,
