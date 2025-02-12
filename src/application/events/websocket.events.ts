@@ -1,0 +1,15 @@
+export enum WebSocketEvents {
+  JOIN_SESSION = 'joinSession',
+  LEAVE_SESSION = 'leaveSession',
+  SUBMIT_VOTE = 'submitVote',
+  REVEAL_VOTES = 'revealVotes',
+  START_VOTING = 'startVoting',
+  END_VOTING = 'endVoting',
+  USER_JOINED = 'userJoined',
+  USER_LEFT = 'userLeft',
+  VOTE_SUBMITTED = 'voteSubmitted',
+  VOTES_REVEALED = 'votesRevealed',
+  VOTING_STARTED = 'votingStarted',
+  VOTING_ENDED = 'votingEnded',
+  ERROR = 'error',
+}

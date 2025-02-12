@@ -1,0 +1,25 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
+import { Task } from '../../../core/entities/task.entity';
+import { ISessionRepository } from '../../../core/interfaces/session.repository.interface';
+import { ITaskRepository } from '../../../core/interfaces/task.repository.interface';
+import { CreateTaskDto } from '../../dto/create-task.dto';
+
+@Injectable()
+export class CreateTaskUseCase {
+  constructor(
+    private readonly taskRepository: ITaskRepository,
+    private readonly sessionRepository: ISessionRepository,
+  ) {}
+
+  async execute(dto: CreateTaskDto): Promise<Task> {
+    const session = await this.sessionRepository.findById(dto.sessionId);
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    const task = new Task(uuidv4(), dto.title, dto.description, dto.sessionId);
+
+    return this.taskRepository.create(task);
+  }
+}
