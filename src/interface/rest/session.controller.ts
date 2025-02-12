@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Post,
   Put,
@@ -12,15 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CreateSessionDto } from '../../application/dto/session/create-session.dto';
-import { JoinSessionDto } from '../../application/dto/session/join-session.dto';
 import { UpdateSessionDto } from '../../application/dto/session/update-session.dto';
+import { AuthenticateUserUseCase } from '../../application/use-cases/auth/authenticate-user.use-case';
 import { CreateSessionUseCase } from '../../application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from '../../application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from '../../application/use-cases/session/get-session.use-case';
-import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
 import { Session } from '../../core/entities/session.entity';
-import { IAuthService } from '../../core/interfaces/auth/auth.interface';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 
 @Controller('sessions')
@@ -30,9 +27,7 @@ export class SessionController {
     private readonly getSessionUseCase: GetSessionUseCase,
     private readonly updateSessionUseCase: UpdateSessionUseCase,
     private readonly deleteSessionUseCase: DeleteSessionUseCase,
-    private readonly joinSessionUseCase: JoinSessionUseCase,
-    @Inject('IAuthService')
-    private readonly authService: IAuthService,
+    private readonly authenticateUserUseCase: AuthenticateUserUseCase,
   ) {}
 
   @Post()
@@ -41,21 +36,10 @@ export class SessionController {
     const moderator = session.participants.find(
       (p) => p.id === session.moderatorId,
     );
-    const token = await this.authService.generateToken(moderator);
+    const token = await this.authenticateUserUseCase.execute(moderator);
 
     return {
       session,
-      token,
-    };
-  }
-
-  @Post('join')
-  async joinSession(@Body() dto: JoinSessionDto) {
-    const participant = await this.joinSessionUseCase.execute(dto);
-    const token = await this.authService.generateToken(participant);
-
-    return {
-      participant,
       token,
     };
   }

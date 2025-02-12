@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthenticateUserUseCase } from './application/use-cases/auth/authenticate-user.use-case';
 import { CreateSessionUseCase } from './application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from './application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from './application/use-cases/session/get-session.use-case';
@@ -46,6 +47,8 @@ import { VoteController } from './interface/rest/vote.controller';
       provide: 'IVoteRepository',
       useClass: PrismaVoteRepository,
     },
+    // Auth Use Cases
+    AuthenticateUserUseCase,
     // Session Use Cases
     CreateSessionUseCase,
     GetSessionUseCase,
