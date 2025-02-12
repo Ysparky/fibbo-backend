@@ -1,4 +1,9 @@
-import { NotFoundException, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  NotFoundException,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -11,7 +16,10 @@ import { GetTaskVotesUseCase } from 'src/application/use-cases/vote/get-task-vot
 import { CreateTaskDto } from '../../application/dto/create-task.dto';
 import { JoinSessionDto } from '../../application/dto/join-session.dto';
 import { SubmitVoteDto } from '../../application/dto/submit-vote.dto';
-import { UpdateTaskDto } from '../../application/dto/update-task.dto';
+import { ChangeCurrentTaskPayloadDto } from '../../application/dto/task/change-current-task-payload.dto';
+import { DeleteTaskPayloadDto } from '../../application/dto/task/delete-task-payload.dto';
+import { UpdateTaskPayloadDto } from '../../application/dto/task/update-task-payload.dto';
+import { UpdateVotePayloadDto } from '../../application/dto/vote/update-vote-payload.dto';
 import { WebSocketEvents } from '../../application/events/websocket.events';
 import { HandleDisconnectUseCase } from '../../application/use-cases/session/handle-disconnect.use-case';
 import { HandleReconnectUseCase } from '../../application/use-cases/session/handle-reconnect.use-case';
@@ -30,6 +38,7 @@ import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsRolesGuard } from '../auth/guards/ws-roles.guard';
 import { WsCustomException } from './exceptions/ws-custom.exception';
 import { WsExceptionFilter } from './filters/ws-exception.filter';
+import { WsValidationPipe } from './pipes/ws-validation.pipe';
 
 @WebSocketGateway({
   cors: {
@@ -38,6 +47,7 @@ import { WsExceptionFilter } from './filters/ws-exception.filter';
 })
 @UseGuards(WsAuthGuard, WsRolesGuard)
 @UseFilters(WsExceptionFilter)
+@UsePipes(new WsValidationPipe())
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -110,16 +120,7 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.JOIN_SESSION)
   async handleJoinSession(client: Socket, payload: JoinSessionDto) {
-    if (!payload.sessionId || !payload.participantName) {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['sessionId', 'participantName'],
-      });
-    }
-
-    const participant = await this.joinSessionUseCase.execute({
-      sessionId: payload.sessionId,
-      participantName: payload.participantName,
-    });
+    const participant = await this.joinSessionUseCase.execute(payload);
 
     client.join(payload.sessionId);
 
@@ -195,12 +196,6 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.SUBMIT_VOTE)
   async handleSubmitVote(client: Socket, payload: SubmitVoteDto) {
-    if (!payload.taskId || typeof payload.value !== 'number') {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['taskId', 'value'],
-      });
-    }
-
     const vote = await this.submitVoteUseCase.execute(
       client.data.user.id,
       payload,
@@ -216,16 +211,7 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.UPDATE_VOTE)
-  async handleUpdateVote(
-    client: Socket,
-    payload: { voteId: string; value: number },
-  ) {
-    if (!payload.voteId || typeof payload.value !== 'number') {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['voteId', 'value'],
-      });
-    }
-
+  async handleUpdateVote(client: Socket, payload: UpdateVotePayloadDto) {
     const vote = await this.updateVoteUseCase.execute(
       payload.voteId,
       client.data.user.id,
@@ -254,12 +240,6 @@ export class SessionGateway
   @SubscribeMessage(WebSocketEvents.TASK_CREATED)
   @Roles(UserRole.MODERATOR)
   async handleTaskCreated(client: Socket, payload: CreateTaskDto) {
-    if (!payload.sessionId || !payload.title) {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['sessionId', 'title'],
-      });
-    }
-
     const task = await this.createTaskUseCase.execute(payload);
 
     this.server.to(payload.sessionId).emit(WebSocketEvents.TASK_CREATED, {
@@ -271,16 +251,7 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.TASK_UPDATED)
   @Roles(UserRole.MODERATOR)
-  async handleTaskUpdated(
-    client: Socket,
-    payload: { taskId: string; update: UpdateTaskDto },
-  ) {
-    if (!payload.taskId || !payload.update) {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['taskId', 'update'],
-      });
-    }
-
+  async handleTaskUpdated(client: Socket, payload: UpdateTaskPayloadDto) {
     const task = await this.updateTaskUseCase.execute(
       payload.taskId,
       payload.update,
@@ -295,15 +266,9 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.TASK_DELETED)
   @Roles(UserRole.MODERATOR)
-  async handleTaskDeleted(client: Socket, taskId: string) {
-    if (!taskId) {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['taskId'],
-      });
-    }
-
+  async handleTaskDeleted(client: Socket, payload: DeleteTaskPayloadDto) {
     try {
-      await this.deleteTaskUseCase.execute(taskId);
+      await this.deleteTaskUseCase.execute(payload.taskId);
 
       // Get the task's session ID from the client's rooms
       const sessionId = Array.from(client.rooms).find(
@@ -314,7 +279,7 @@ export class SessionGateway
       }
 
       this.server.to(sessionId).emit(WebSocketEvents.TASK_DELETED, {
-        taskId,
+        taskId: payload.taskId,
       });
 
       return { status: 'ok' };
@@ -330,14 +295,8 @@ export class SessionGateway
   @Roles(UserRole.MODERATOR)
   async handleCurrentTaskChanged(
     client: Socket,
-    payload: { sessionId: string; taskId: string | null },
+    payload: ChangeCurrentTaskPayloadDto,
   ) {
-    if (!payload.sessionId) {
-      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
-        required: ['sessionId'],
-      });
-    }
-
     await this.changeCurrentTaskUseCase.execute(
       payload.sessionId,
       payload.taskId,

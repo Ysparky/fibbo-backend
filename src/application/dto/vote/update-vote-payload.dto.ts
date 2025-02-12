@@ -1,11 +1,12 @@
 import { IsNotEmpty, IsNumber, IsUUID, Max, Min } from 'class-validator';
 
-export class SubmitVoteDto {
+export class UpdateVotePayloadDto {
   @IsUUID()
   @IsNotEmpty()
-  taskId: string;
+  voteId: string;
 
   @IsNumber()
+  @IsNotEmpty()
   @Min(0)
   @Max(100)
   value: number;
