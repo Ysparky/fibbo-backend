@@ -18,7 +18,7 @@ import { HandleDisconnectUseCase } from '../../application/use-cases/session/han
 import { HandleReconnectUseCase } from '../../application/use-cases/session/handle-reconnect.use-case';
 import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
-import { UserRole } from '../../core/entities/user.entity';
+import { UserRole } from '../../core/entities/session-user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsRolesGuard } from '../auth/guards/ws-roles.guard';

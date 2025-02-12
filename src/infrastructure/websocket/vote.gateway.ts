@@ -17,7 +17,7 @@ import { WebSocketEvents } from '../../application/events/websocket.events';
 import { GetTaskVotesUseCase } from '../../application/use-cases/vote/get-task-votes.use-case';
 import { SubmitVoteUseCase } from '../../application/use-cases/vote/submit-vote.use-case';
 import { UpdateVoteUseCase } from '../../application/use-cases/vote/update-vote.use-case';
-import { UserRole } from '../../core/entities/user.entity';
+import { UserRole } from '../../core/entities/session-user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsRolesGuard } from '../auth/guards/ws-roles.guard';

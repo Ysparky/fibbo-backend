@@ -12,11 +12,11 @@ import {
 } from '@nestjs/common';
 import { CreateSessionDto } from '../../application/dto/session/create-session.dto';
 import { UpdateSessionDto } from '../../application/dto/session/update-session.dto';
-import { AuthenticateUserUseCase } from '../../application/use-cases/auth/authenticate-user.use-case';
 import { CreateSessionUseCase } from '../../application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from '../../application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from '../../application/use-cases/session/get-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
+import { UserRole } from '../../core/entities/session-user.entity';
 import { Session } from '../../core/entities/session.entity';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 
@@ -27,21 +27,23 @@ export class SessionController {
     private readonly getSessionUseCase: GetSessionUseCase,
     private readonly updateSessionUseCase: UpdateSessionUseCase,
     private readonly deleteSessionUseCase: DeleteSessionUseCase,
-    private readonly authenticateUserUseCase: AuthenticateUserUseCase,
   ) {}
 
   @Post()
-  async createSession(@Body() dto: CreateSessionDto) {
-    const session = await this.createSessionUseCase.execute(dto);
-    const moderator = session.participants.find(
-      (p) => p.id === session.moderatorId,
-    );
-    const token = await this.authenticateUserUseCase.execute(moderator);
+  @UseGuards(JwtAuthGuard)
+  async createSession(
+    @Body() dto: CreateSessionDto,
+    @Request() req,
+  ): Promise<Session> {
+    // Ensure only moderators can create sessions
+    if (req.user.role !== UserRole.MODERATOR) {
+      throw new UnauthorizedException('Only moderators can create sessions');
+    }
 
-    return {
-      session,
-      token,
-    };
+    return this.createSessionUseCase.execute({
+      ...dto,
+      moderatorId: req.user.id,
+    });
   }
 
   @UseGuards(JwtAuthGuard)

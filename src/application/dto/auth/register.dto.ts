@@ -1,13 +1,9 @@
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
-export class CreateSessionDto {
+export class RegisterDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(50)
+  @MinLength(2)
+  @MaxLength(30)
   name: string;
-
-  @IsString()
-  @IsNotEmpty()
-  moderatorId: string;
 }

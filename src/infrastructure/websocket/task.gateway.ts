@@ -20,7 +20,7 @@ import { ChangeCurrentTaskUseCase } from '../../application/use-cases/task/chang
 import { CreateTaskUseCase } from '../../application/use-cases/task/create-task.use-case';
 import { DeleteTaskUseCase } from '../../application/use-cases/task/delete-task.use-case';
 import { UpdateTaskUseCase } from '../../application/use-cases/task/update-task.use-case';
-import { UserRole } from '../../core/entities/user.entity';
+import { UserRole } from '../../core/entities/session-user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsRolesGuard } from '../auth/guards/ws-roles.guard';

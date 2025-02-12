@@ -14,6 +14,8 @@ import { DeleteTaskUseCase } from './application/use-cases/task/delete-task.use-
 import { GetTaskUseCase } from './application/use-cases/task/get-task.use-case';
 import { GetTasksBySessionUseCase } from './application/use-cases/task/get-tasks-by-session.use-case';
 import { UpdateTaskUseCase } from './application/use-cases/task/update-task.use-case';
+import { CreateUserUseCase } from './application/use-cases/user/create-user.use-case';
+import { GetUserByNameUseCase } from './application/use-cases/user/get-user-by-name.use-case';
 import { GetTaskVotesUseCase } from './application/use-cases/vote/get-task-votes.use-case';
 import { SubmitVoteUseCase } from './application/use-cases/vote/submit-vote.use-case';
 import { UpdateVoteUseCase } from './application/use-cases/vote/update-vote.use-case';
@@ -21,17 +23,24 @@ import { AuthModule } from './infrastructure/auth/auth.module';
 import { PrismaService } from './infrastructure/persistence/prisma.service';
 import { PrismaSessionRepository } from './infrastructure/persistence/prisma.session.repository';
 import { PrismaTaskRepository } from './infrastructure/persistence/prisma.task.repository';
+import { PrismaUserRepository } from './infrastructure/persistence/prisma.user.repository';
 import { PrismaVoteRepository } from './infrastructure/persistence/prisma.vote.repository';
 import { SessionGateway } from './infrastructure/websocket/session.gateway';
 import { TaskGateway } from './infrastructure/websocket/task.gateway';
 import { VoteGateway } from './infrastructure/websocket/vote.gateway';
+import { AuthController } from './interface/rest/auth.controller';
 import { SessionController } from './interface/rest/session.controller';
 import { TaskController } from './interface/rest/task.controller';
 import { VoteController } from './interface/rest/vote.controller';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
-  controllers: [SessionController, TaskController, VoteController],
+  controllers: [
+    SessionController,
+    TaskController,
+    VoteController,
+    AuthController,
+  ],
   providers: [
     // Infrastructure
     PrismaService,
@@ -46,6 +55,10 @@ import { VoteController } from './interface/rest/vote.controller';
     {
       provide: 'IVoteRepository',
       useClass: PrismaVoteRepository,
+    },
+    {
+      provide: 'IUserRepository',
+      useClass: PrismaUserRepository,
     },
     // Auth Use Cases
     AuthenticateUserUseCase,
@@ -68,6 +81,9 @@ import { VoteController } from './interface/rest/vote.controller';
     SubmitVoteUseCase,
     GetTaskVotesUseCase,
     UpdateVoteUseCase,
+    // User Use Cases
+    CreateUserUseCase,
+    GetUserByNameUseCase,
     // Gateways
     SessionGateway,
     TaskGateway,

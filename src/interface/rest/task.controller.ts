@@ -15,8 +15,8 @@ import { DeleteTaskUseCase } from '../../application/use-cases/task/delete-task.
 import { GetTaskUseCase } from '../../application/use-cases/task/get-task.use-case';
 import { GetTasksBySessionUseCase } from '../../application/use-cases/task/get-tasks-by-session.use-case';
 import { UpdateTaskUseCase } from '../../application/use-cases/task/update-task.use-case';
+import { UserRole } from '../../core/entities/session-user.entity';
 import { Task } from '../../core/entities/task.entity';
-import { UserRole } from '../../core/entities/user.entity';
 import { Roles } from '../../infrastructure/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../infrastructure/auth/guards/roles.guard';

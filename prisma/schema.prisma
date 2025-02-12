@@ -10,9 +10,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   name      String
-  role      UserRole
-  sessionId String?
-  session   Session? @relation(fields: [sessionId], references: [id])
+  sessions  SessionUser[]
   votes     Vote[]
   
   @@map("users")
@@ -21,13 +19,24 @@ model User {
 model Session {
   id            String   @id @default(uuid())
   name          String
-  moderatorId   String
   currentTaskId String?
   isVotingActive Boolean @default(false)
-  participants  User[]
+  users         SessionUser[]
   tasks         Task[]
   
   @@map("sessions")
+}
+
+model SessionUser {
+  id        String   @id @default(uuid())
+  userId    String
+  sessionId String
+  role      UserRole
+  user      User     @relation(fields: [userId], references: [id])
+  session   Session  @relation(fields: [sessionId], references: [id])
+
+  @@unique([userId, sessionId])
+  @@map("session_users")
 }
 
 model Task {

@@ -1,17 +1,12 @@
+import { SessionUser } from './session-user.entity';
+
 export class User {
   id: string;
   name: string;
-  role: UserRole;
-  sessionId?: string;
+  sessions?: SessionUser[];
 
-  constructor(id: string, name: string, role: UserRole) {
+  constructor(id: string, name: string) {
     this.id = id;
     this.name = name;
-    this.role = role;
   }
-}
-
-export enum UserRole {
-  MODERATOR = 'MODERATOR',
-  PARTICIPANT = 'PARTICIPANT',
 }
