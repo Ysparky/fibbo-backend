@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/core/interfaces/auth/jwt-payload.interface';
 import { User } from '../../../core/entities/user.entity';
 import { IAuthService } from '../../../core/interfaces/auth/auth.interface';
-import { JwtPayload } from '../../../core/interfaces/auth/jwt-payload.interface';
 
 @Injectable()
 export class JwtAuthService implements IAuthService {
@@ -28,7 +28,7 @@ export class JwtAuthService implements IAuthService {
     }
   }
 
-  async decodeToken(token: string): Promise<JwtPayload> {
-    return this.jwtService.decode(token) as JwtPayload;
+  async validateUser(payload: JwtPayload): Promise<boolean> {
+    return !!(payload.id && payload.name && payload.role);
   }
 }
