@@ -33,4 +33,23 @@ export class PrismaSessionUserRepository implements ISessionUserRepository {
       },
     });
   }
+
+  async remove(userId: string, sessionId: string): Promise<void> {
+    await this.prisma.sessionUser.delete({
+      where: {
+        userId_sessionId: {
+          userId,
+          sessionId,
+        },
+      },
+    });
+  }
+
+  async removeFromAllSessions(userId: string): Promise<void> {
+    await this.prisma.sessionUser.deleteMany({
+      where: {
+        userId,
+      },
+    });
+  }
 }

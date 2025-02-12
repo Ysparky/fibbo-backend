@@ -4,4 +4,6 @@ import { UserRole } from '../../entities/session-user.entity';
 export interface ISessionUserRepository {
   getUserRole(userId: string, sessionId: string): Promise<UserRole | null>;
   create(data: CreateSessionUserDto): Promise<void>;
+  remove(userId: string, sessionId: string): Promise<void>;
+  removeFromAllSessions(userId: string): Promise<void>;
 }

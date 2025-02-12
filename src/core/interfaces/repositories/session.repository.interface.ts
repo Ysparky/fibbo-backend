@@ -6,8 +6,5 @@ export interface ISessionRepository {
   findById(id: string): Promise<Session | null>;
   update(id: string, data: Partial<Session>): Promise<Session>;
   delete(id: string): Promise<void>;
-  addParticipant(sessionId: string, userId: string): Promise<Session>;
-  removeParticipant(sessionId: string, userId: string): Promise<Session>;
-  removeParticipantFromAllSessions(userId: string): Promise<void>;
   findByParticipantId(userId: string): Promise<Session | null>;
 }

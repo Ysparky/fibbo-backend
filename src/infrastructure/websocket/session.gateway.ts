@@ -6,19 +6,19 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { UserRole } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
-import { JoinSessionDto } from '../../application/dto/session/join-session.dto';
+import { JoinSessionDto } from 'src/application/dto/session/join-session.dto';
 import {
   WsJoinSessionResponseDto,
   WsLeaveSessionResponseDto,
   WsVotingStateResponseDto,
-} from '../../application/dto/session/session-response.dto';
-import { WebSocketEvents } from '../../application/events/websocket.events';
-import { HandleDisconnectUseCase } from '../../application/use-cases/session/handle-disconnect.use-case';
-import { HandleReconnectUseCase } from '../../application/use-cases/session/handle-reconnect.use-case';
-import { JoinSessionUseCase } from '../../application/use-cases/session/join-session.use-case';
-import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
-import { UserRole } from '../../core/entities/session-user.entity';
+} from 'src/application/dto/session/session-response.dto';
+import { WebSocketEvents } from 'src/application/events/websocket.events';
+import { HandleDisconnectUseCase } from 'src/application/use-cases/session/handle-disconnect.use-case';
+import { HandleReconnectUseCase } from 'src/application/use-cases/session/handle-reconnect.use-case';
+import { JoinSessionUseCase } from 'src/application/use-cases/session/join-session.use-case';
+import { UpdateSessionUseCase } from 'src/application/use-cases/session/update-session.use-case';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsSessionRoleGuard } from '../auth/guards/ws-session-role.guard';
@@ -100,23 +100,23 @@ export class SessionGateway
     client: Socket,
     payload: JoinSessionDto,
   ): Promise<WsJoinSessionResponseDto> {
-    const participant = await this.joinSessionUseCase.execute(payload);
+    const sessionUser = await this.joinSessionUseCase.execute(payload);
 
     client.join(payload.sessionId);
 
-    this.server.to(payload.sessionId).emit(WebSocketEvents.USER_JOINED, {
-      userId: participant.id,
-      name: participant.name,
-      role: participant.role,
-    });
+    const response = {
+      id: sessionUser.sessionId,
+      name: sessionUser.session.name,
+      role: sessionUser.role,
+    };
+
+    this.server
+      .to(payload.sessionId)
+      .emit(WebSocketEvents.USER_JOINED, response);
 
     return {
       status: 'ok',
-      participant: {
-        id: participant.id,
-        name: participant.name,
-        role: participant.role,
-      },
+      participant: response,
     };
   }
 
