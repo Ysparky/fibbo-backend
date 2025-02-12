@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -20,6 +20,8 @@ import { UserRole } from '../../core/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { WsRolesGuard } from '../auth/guards/ws-roles.guard';
+import { WsCustomException } from './exceptions/ws-custom.exception';
+import { WsExceptionFilter } from './filters/ws-exception.filter';
 
 @WebSocketGateway({
   cors: {
@@ -27,6 +29,7 @@ import { WsRolesGuard } from '../auth/guards/ws-roles.guard';
   },
 })
 @UseGuards(WsAuthGuard, WsRolesGuard)
+@UseFilters(WsExceptionFilter)
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -58,24 +61,26 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.JOIN_SESSION)
   async handleJoinSession(client: Socket, payload: JoinSessionDto) {
-    try {
-      const participant = await this.joinSessionUseCase.execute({
-        sessionId: payload.sessionId,
-        participantName: payload.participantName,
+    if (!payload.sessionId || !payload.participantName) {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['sessionId', 'participantName'],
       });
-
-      client.join(payload.sessionId);
-
-      this.server.to(payload.sessionId).emit(WebSocketEvents.USER_JOINED, {
-        userId: participant.id,
-        name: participant.name,
-        role: participant.role,
-      });
-
-      return { status: 'ok', participant };
-    } catch (error) {
-      return { status: 'error', message: error.message };
     }
+
+    const participant = await this.joinSessionUseCase.execute({
+      sessionId: payload.sessionId,
+      participantName: payload.participantName,
+    });
+
+    client.join(payload.sessionId);
+
+    this.server.to(payload.sessionId).emit(WebSocketEvents.USER_JOINED, {
+      userId: participant.id,
+      name: participant.name,
+      role: participant.role,
+    });
+
+    return { status: 'ok', participant };
   }
 
   @SubscribeMessage(WebSocketEvents.LEAVE_SESSION)
@@ -133,20 +138,24 @@ export class SessionGateway
 
   @SubscribeMessage(WebSocketEvents.SUBMIT_VOTE)
   async handleSubmitVote(client: Socket, payload: SubmitVoteDto) {
-    try {
-      const vote = await this.submitVoteUseCase.execute(
-        client.data.user.id,
-        payload,
-      );
-      this.server.to(payload.taskId).emit(WebSocketEvents.VOTE_SUBMITTED, {
-        userId: client.data.user.id,
-        taskId: payload.taskId,
-        value: payload.value,
+    if (!payload.taskId || typeof payload.value !== 'number') {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['taskId', 'value'],
       });
-      return { status: 'ok', vote };
-    } catch (error) {
-      return { status: 'error', message: error.message };
     }
+
+    const vote = await this.submitVoteUseCase.execute(
+      client.data.user.id,
+      payload,
+    );
+
+    this.server.to(payload.taskId).emit(WebSocketEvents.VOTE_SUBMITTED, {
+      userId: client.data.user.id,
+      taskId: payload.taskId,
+      value: payload.value,
+    });
+
+    return { status: 'ok', vote };
   }
 
   @SubscribeMessage(WebSocketEvents.UPDATE_VOTE)
@@ -154,23 +163,25 @@ export class SessionGateway
     client: Socket,
     payload: { voteId: string; value: number },
   ) {
-    try {
-      const vote = await this.updateVoteUseCase.execute(
-        payload.voteId,
-        client.data.user.id,
-        { value: payload.value },
-      );
-
-      this.server.to(vote.taskId).emit(WebSocketEvents.VOTE_UPDATED, {
-        voteId: vote.id,
-        userId: vote.userId,
-        value: vote.value,
+    if (!payload.voteId || typeof payload.value !== 'number') {
+      throw new WsCustomException('Invalid payload', 'INVALID_PAYLOAD', {
+        required: ['voteId', 'value'],
       });
-
-      return { status: 'ok', vote };
-    } catch (error) {
-      return { status: 'error', message: error.message };
     }
+
+    const vote = await this.updateVoteUseCase.execute(
+      payload.voteId,
+      client.data.user.id,
+      { value: payload.value },
+    );
+
+    this.server.to(vote.taskId).emit(WebSocketEvents.VOTE_UPDATED, {
+      voteId: vote.id,
+      userId: vote.userId,
+      value: vote.value,
+    });
+
+    return { status: 'ok', vote };
   }
 
   @SubscribeMessage(WebSocketEvents.GET_USER_VOTES)
