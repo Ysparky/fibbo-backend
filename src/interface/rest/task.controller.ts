@@ -19,10 +19,10 @@ import { UserRole } from '../../core/entities/session-user.entity';
 import { Task } from '../../core/entities/task.entity';
 import { Roles } from '../../infrastructure/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../infrastructure/auth/guards/roles.guard';
+import { SessionRoleGuard } from '../../infrastructure/auth/guards/session-role.guard';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, SessionRoleGuard)
 export class TaskController {
   constructor(
     private readonly createTaskUseCase: CreateTaskUseCase,

@@ -12,13 +12,16 @@ import {
 } from '@nestjs/common';
 import { CreateSessionDto } from '../../application/dto/session/create-session.dto';
 import { UpdateSessionDto } from '../../application/dto/session/update-session.dto';
+import { CreateTaskDto } from '../../application/dto/task/create-task.dto';
 import { CreateSessionUseCase } from '../../application/use-cases/session/create-session.use-case';
 import { DeleteSessionUseCase } from '../../application/use-cases/session/delete-session.use-case';
 import { GetSessionUseCase } from '../../application/use-cases/session/get-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/session/update-session.use-case';
 import { UserRole } from '../../core/entities/session-user.entity';
 import { Session } from '../../core/entities/session.entity';
+import { Roles } from '../../infrastructure/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
+import { SessionRoleGuard } from '../../infrastructure/auth/guards/session-role.guard';
 
 @Controller('sessions')
 export class SessionController {
@@ -74,5 +77,15 @@ export class SessionController {
       throw new UnauthorizedException('Only moderator can delete session');
     }
     return this.deleteSessionUseCase.execute(id);
+  }
+
+  @Post(':sessionId/tasks')
+  @UseGuards(JwtAuthGuard, SessionRoleGuard)
+  @Roles(UserRole.MODERATOR)
+  async createTask(
+    @Param('sessionId') sessionId: string,
+    @Body() dto: CreateTaskDto,
+  ) {
+    // ... implementation
   }
 }

@@ -23,7 +23,7 @@ import { UpdateTaskUseCase } from '../../application/use-cases/task/update-task.
 import { UserRole } from '../../core/entities/session-user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
-import { WsRolesGuard } from '../auth/guards/ws-roles.guard';
+import { WsSessionRoleGuard } from '../auth/guards/ws-session-role.guard';
 import { WsCustomException } from './exceptions/ws-custom.exception';
 import { WsExceptionFilter } from './filters/ws-exception.filter';
 import { WsValidationPipe } from './pipes/ws-validation.pipe';
@@ -33,7 +33,7 @@ import { WsValidationPipe } from './pipes/ws-validation.pipe';
     origin: '*',
   },
 })
-@UseGuards(WsAuthGuard, WsRolesGuard)
+@UseGuards(WsAuthGuard, WsSessionRoleGuard)
 @UseFilters(WsExceptionFilter)
 @UsePipes(new WsValidationPipe())
 export class TaskGateway {

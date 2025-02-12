@@ -12,8 +12,6 @@ export class JwtAuthService implements IAuthService {
     const payload: JwtPayload = {
       id: user.id,
       name: user.name,
-      role: user.role,
-      sessionId: user.sessionId,
     };
 
     return this.jwtService.sign(payload);
@@ -29,7 +27,7 @@ export class JwtAuthService implements IAuthService {
   }
 
   async validateUser(payload: JwtPayload): Promise<boolean> {
-    return !!(payload.id && payload.name && payload.role);
+    return !!(payload.id && payload.name);
   }
 
   decode(token: string): JwtPayload {

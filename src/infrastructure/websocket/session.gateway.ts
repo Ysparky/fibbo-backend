@@ -21,7 +21,7 @@ import { UpdateSessionUseCase } from '../../application/use-cases/session/update
 import { UserRole } from '../../core/entities/session-user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
-import { WsRolesGuard } from '../auth/guards/ws-roles.guard';
+import { WsSessionRoleGuard } from '../auth/guards/ws-session-role.guard';
 import { WsCustomException } from './exceptions/ws-custom.exception';
 import { WsExceptionFilter } from './filters/ws-exception.filter';
 import { WsValidationPipe } from './pipes/ws-validation.pipe';
@@ -31,7 +31,7 @@ import { WsValidationPipe } from './pipes/ws-validation.pipe';
     origin: '*',
   },
 })
-@UseGuards(WsAuthGuard, WsRolesGuard)
+@UseGuards(WsAuthGuard)
 @UseFilters(WsExceptionFilter)
 @UsePipes(new WsValidationPipe())
 export class SessionGateway
@@ -147,6 +147,7 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.START_VOTING)
+  @UseGuards(WsSessionRoleGuard)
   @Roles(UserRole.MODERATOR)
   async handleStartVoting(
     client: Socket,
@@ -164,6 +165,7 @@ export class SessionGateway
   }
 
   @SubscribeMessage(WebSocketEvents.END_VOTING)
+  @UseGuards(WsSessionRoleGuard)
   @Roles(UserRole.MODERATOR)
   async handleEndVoting(
     client: Socket,

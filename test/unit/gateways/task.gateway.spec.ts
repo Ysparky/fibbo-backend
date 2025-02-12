@@ -10,7 +10,7 @@ import { DeleteTaskUseCase } from 'src/application/use-cases/task/delete-task.us
 import { UpdateTaskUseCase } from 'src/application/use-cases/task/update-task.use-case';
 import { Task } from 'src/core/entities/task.entity';
 import { WsAuthGuard } from 'src/infrastructure/auth/guards/ws-auth.guard';
-import { WsRolesGuard } from 'src/infrastructure/auth/guards/ws-roles.guard';
+import { WsSessionRoleGuard } from 'src/infrastructure/auth/guards/ws-roles.guard';
 import { TaskGateway } from 'src/infrastructure/websocket/task.gateway';
 
 describe('TaskGateway', () => {
@@ -58,7 +58,7 @@ describe('TaskGateway', () => {
     })
       .overrideGuard(WsAuthGuard)
       .useValue({ canActivate: jest.fn() })
-      .overrideGuard(WsRolesGuard)
+      .overrideGuard(WsSessionRoleGuard)
       .useValue({ canActivate: jest.fn() })
       .compile();
 

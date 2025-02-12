@@ -14,7 +14,7 @@ import { SubmitVoteUseCase } from 'src/application/use-cases/vote/submit-vote.us
 import { UpdateVoteUseCase } from 'src/application/use-cases/vote/update-vote.use-case';
 import { User, UserRole } from 'src/core/entities/user.entity';
 import { WsAuthGuard } from 'src/infrastructure/auth/guards/ws-auth.guard';
-import { WsRolesGuard } from 'src/infrastructure/auth/guards/ws-roles.guard';
+import { WsSessionRoleGuard } from 'src/infrastructure/auth/guards/ws-roles.guard';
 import { SessionGateway } from 'src/infrastructure/websocket/session.gateway';
 
 describe('SessionGateway', () => {
@@ -93,7 +93,7 @@ describe('SessionGateway', () => {
     })
       .overrideGuard(WsAuthGuard)
       .useValue({ canActivate: jest.fn() })
-      .overrideGuard(WsRolesGuard)
+      .overrideGuard(WsSessionRoleGuard)
       .useValue({ canActivate: jest.fn() })
       .compile();
 
