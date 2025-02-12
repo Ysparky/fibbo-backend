@@ -1,9 +1,10 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { AuthResponseDto } from 'src/application/dto/auth/auth-response.dto';
+import { LoginDto } from 'src/application/dto/auth/login.dto';
 import { RegisterDto } from 'src/application/dto/auth/register.dto';
+import { AuthenticateUserUseCase } from 'src/application/use-cases/auth/authenticate-user.use-case';
+import { CreateUserUseCase } from 'src/application/use-cases/user/create-user.use-case';
 import { GetUserByNameUseCase } from 'src/application/use-cases/user/get-user-by-name.use-case';
-import { LoginDto } from '../../application/dto/auth/login.dto';
-import { AuthenticateUserUseCase } from '../../application/use-cases/auth/authenticate-user.use-case';
-import { CreateUserUseCase } from '../../application/use-cases/user/create-user.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -14,7 +15,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() dto: RegisterDto) {
+  async register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
     const user = await this.createUserUseCase.execute(dto);
     const token = await this.authenticateUserUseCase.execute(user);
 
@@ -25,7 +26,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDto) {
+  async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.getUserByNameUseCase.execute(dto.name);
     const token = await this.authenticateUserUseCase.execute(user);
 
