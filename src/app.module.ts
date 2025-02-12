@@ -14,7 +14,6 @@ import { GetTaskUseCase } from './application/use-cases/task/get-task.use-case';
 import { GetTasksBySessionUseCase } from './application/use-cases/task/get-tasks-by-session.use-case';
 import { UpdateTaskUseCase } from './application/use-cases/task/update-task.use-case';
 import { GetTaskVotesUseCase } from './application/use-cases/vote/get-task-votes.use-case';
-import { GetUserVotesUseCase } from './application/use-cases/vote/get-user-votes.use-case';
 import { SubmitVoteUseCase } from './application/use-cases/vote/submit-vote.use-case';
 import { UpdateVoteUseCase } from './application/use-cases/vote/update-vote.use-case';
 import { AuthModule } from './infrastructure/auth/auth.module';
@@ -68,7 +67,6 @@ import { VoteController } from './interface/rest/vote.controller';
     SubmitVoteUseCase,
     GetTaskVotesUseCase,
     UpdateVoteUseCase,
-    GetUserVotesUseCase,
     // WebSocket Gateway
     SessionGateway,
   ],
